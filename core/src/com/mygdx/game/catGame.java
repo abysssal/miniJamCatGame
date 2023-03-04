@@ -23,7 +23,7 @@ public class catGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	OrthographicCamera camera;
 
-	String itemHeld = "none";
+	String itemHeld = "nothing";
 
 	Texture cat;
 	Rectangle catRect;
@@ -75,13 +75,22 @@ public class catGame extends ApplicationAdapter {
 		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
 			if (catRect.overlaps(coffeeRect)) {
 				itemHeld = "coffee";
-				coffeeRect = null;
-				coffee = null;
-			} else if (catRect.overlaps(espressoRect)) {
+				System.out.println("picked up coffee");
+				coffeeRect.setPosition(999999999, 999999999);
+				return;
+			}
+
+			if (catRect.overlaps(espressoRect)) {
 				itemHeld = "espresso";
-			} else if (catRect.overlaps(blackCoffeeRect)) {
+				System.out.println("picked up espresso");
+				espressoRect.setPosition(999999999, 999999999);
+				return;
+			}
+
+			if (catRect.overlaps(blackCoffeeRect)) {
 				itemHeld = "blackCoffee";
-			} else {
+				System.out.println("picked up black coffee");
+				blackCoffeeRect.setPosition(999999999, 999999999);
 				return;
 			}
 		}
@@ -91,5 +100,8 @@ public class catGame extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		cat.dispose();
+		coffee.dispose();
+		espresso.dispose();
+		blackCoffee.dispose();
 	}
 }
