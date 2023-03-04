@@ -12,6 +12,9 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 // <summary>
 // Idea:
@@ -26,9 +29,18 @@ public class catGame extends ApplicationAdapter {
 
 	String itemHeld = "nothing";
 	Boolean canPickup = true;
+	Vector3 cameraPos;
 
 	Texture cat;
 	Rectangle catRect;
+
+	Texture blackCat;
+	Rectangle blackCatRect;
+	String blackOrder;
+
+	Texture orangeCat;
+	Rectangle orangeCatRect;
+	String orangeOrder;
 
 	Texture coffee;
 	Rectangle coffeeRect;
@@ -44,13 +56,28 @@ public class catGame extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera(1280, 720);
 		camera.setToOrtho(false, 1280, 720);
+		cameraPos = new Vector3();
+
+		blackOrder = makeOrder();
+		orangeOrder = makeOrder();
+
+		if (blackOrder == orangeOrder) {
+			blackOrder = makeOrder();
+			orangeOrder = makeOrder();
+		}
+
+		System.out.println(blackOrder + ", " + orangeOrder);
 
 		cat = new Texture("tiredPlayerCat.png");
+		blackCat = new Texture("blackTiredCat.png");
+		orangeCat = new Texture("orangeTiredCat.png");
 		coffee = new Texture("coffee.png");
 		espresso = new Texture("espresso.png");
 		blackCoffee = new Texture("blackCoffee.png");
 
 		catRect = new Rectangle(Gdx.graphics.getWidth() / 2 - 32, Gdx.graphics.getHeight() / 2 - 32, 64, 64);
+		blackCatRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 64), ThreadLocalRandom.current().nextInt(0, 720 - 64), 64, 64);
+		orangeCatRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 64), ThreadLocalRandom.current().nextInt(0, 720 - 64), 64, 64);
 		coffeeRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 48), ThreadLocalRandom.current().nextInt(0, 720 - 48), 48, 48);
 		espressoRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 48), ThreadLocalRandom.current().nextInt(0, 720 - 48), 48, 48);
 		blackCoffeeRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 48), ThreadLocalRandom.current().nextInt(0, 720 - 48), 48, 48);
@@ -59,14 +86,20 @@ public class catGame extends ApplicationAdapter {
 	@Override
 	public void render () {
 		ScreenUtils.clear(0.15f, 0.15f, 0.15f, 1);
+
 		batch.begin();
 		batch.draw(cat, catRect.x, catRect.y, 64 , 64);
+		batch.draw(blackCat, blackCatRect.x, blackCatRect.y, 64, 64);
+		batch.draw(orangeCat, orangeCatRect.x, orangeCatRect.y, 64, 64);
+
 		batch.draw(coffee, coffeeRect.x, coffeeRect.y, 48, 48);
 		batch.draw(espresso, espressoRect.x, espressoRect.y, 48, 48);
 		batch.draw(blackCoffee, blackCoffeeRect.x, blackCoffeeRect.y, 48, 48);
 		batch.end();
 
-		camera.project(new Vector3(catRect.x, catRect.y, -10));
+		cameraPos.set(catRect.x, catRect.y, -10);
+
+		camera.position.set(cameraPos);
 		camera.update();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.D)) {
@@ -107,6 +140,18 @@ public class catGame extends ApplicationAdapter {
 				System.out.println("picked up air, currently have " + itemHeld);
 				canPickup = true;
 			}
+
+			if (catRect.overlaps(blackCatRect) && itemHeld == blackOrder) {
+				itemHeld = "nothing";
+				blackCat = new Texture("happyBlackCat.png");
+				System.out.println("the black cat is happy!");
+				canPickup = true;
+			} else if (catRect.overlaps(orangeCatRect) && itemHeld == orangeOrder) {
+				itemHeld = "nothing";
+				orangeCat = new Texture("happyOrangeCat.png");
+				System.out.println("the black cat is happy!");
+				canPickup = true;
+			}
 		}
 	}
 	
@@ -114,8 +159,29 @@ public class catGame extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		cat.dispose();
+		blackCat.dispose();
+		orangeCat.dispose();
 		coffee.dispose();
 		espresso.dispose();
 		blackCoffee.dispose();
+	}
+
+	public String makeOrder() {
+		int randomizer = ThreadLocalRandom.current().nextInt(0, 2);
+		String order = null;
+
+		switch (randomizer) {
+			case 0:
+				order = "coffee";
+				break;
+			case 1:
+				order = "espresso";
+				break;
+			case 2:
+				order = "blackCoffee";
+				break;
+		}
+
+		return order;
 	}
 }
