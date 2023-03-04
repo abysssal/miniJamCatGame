@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -24,6 +25,7 @@ public class catGame extends ApplicationAdapter {
 	OrthographicCamera camera;
 
 	String itemHeld = "nothing";
+	Boolean canPickup = true;
 
 	Texture cat;
 	Rectangle catRect;
@@ -42,10 +44,16 @@ public class catGame extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera(1280, 720);
 		camera.setToOrtho(false, 1280, 720);
+
 		cat = new Texture("tiredPlayerCat.png");
 		coffee = new Texture("coffee.png");
+		espresso = new Texture("espresso.png");
+		blackCoffee = new Texture("blackCoffee.png");
+
 		catRect = new Rectangle(Gdx.graphics.getWidth() / 2 - 32, Gdx.graphics.getHeight() / 2 - 32, 64, 64);
 		coffeeRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 48), ThreadLocalRandom.current().nextInt(0, 720 - 48), 48, 48);
+		espressoRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 48), ThreadLocalRandom.current().nextInt(0, 720 - 48), 48, 48);
+		blackCoffeeRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 48), ThreadLocalRandom.current().nextInt(0, 720 - 48), 48, 48);
 	}
 
 	@Override
@@ -54,7 +62,12 @@ public class catGame extends ApplicationAdapter {
 		batch.begin();
 		batch.draw(cat, catRect.x, catRect.y, 64 , 64);
 		batch.draw(coffee, coffeeRect.x, coffeeRect.y, 48, 48);
+		batch.draw(espresso, espressoRect.x, espressoRect.y, 48, 48);
+		batch.draw(blackCoffee, blackCoffeeRect.x, blackCoffeeRect.y, 48, 48);
 		batch.end();
+
+		camera.project(new Vector3(catRect.x, catRect.y, -10));
+		camera.update();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.D)) {
 			catRect.setPosition(catRect.x + 200 * Gdx.graphics.getDeltaTime(), catRect.y);
@@ -72,26 +85,27 @@ public class catGame extends ApplicationAdapter {
 			catRect.setPosition(catRect.x, catRect.y - 200 * Gdx.graphics.getDeltaTime());
 		}
 
-		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+		if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE) && canPickup) {
+			canPickup = false;
+
 			if (catRect.overlaps(coffeeRect)) {
 				itemHeld = "coffee";
 				System.out.println("picked up coffee");
 				coffeeRect.setPosition(999999999, 999999999);
-				return;
-			}
-
-			if (catRect.overlaps(espressoRect)) {
+				canPickup = true;
+			} else if (catRect.overlaps(espressoRect)) {
 				itemHeld = "espresso";
 				System.out.println("picked up espresso");
 				espressoRect.setPosition(999999999, 999999999);
-				return;
-			}
-
-			if (catRect.overlaps(blackCoffeeRect)) {
+				canPickup = true;
+			} else if (catRect.overlaps(blackCoffeeRect)) {
 				itemHeld = "blackCoffee";
 				System.out.println("picked up black coffee");
 				blackCoffeeRect.setPosition(999999999, 999999999);
-				return;
+				canPickup = true;
+			} else {
+				System.out.println("picked up air, currently have " + itemHeld);
+				canPickup = true;
 			}
 		}
 	}
