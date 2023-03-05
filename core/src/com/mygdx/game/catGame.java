@@ -3,6 +3,8 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -26,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 public class catGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	OrthographicCamera camera;
+	Sound pickupSfx;
+	Music newWindow, pillowFort, sleepless;
 
 	String itemHeld = "nothing";
 	Boolean canPickup = true;
@@ -57,6 +61,26 @@ public class catGame extends ApplicationAdapter {
 		camera = new OrthographicCamera(1280, 720);
 		camera.setToOrtho(false, 1280, 720);
 		cameraPos = new Vector3();
+		pickupSfx = Gdx.audio.newSound(Gdx.files.internal("pickup.wav"));
+		newWindow = Gdx.audio.newMusic(Gdx.files.internal("New-Window.mp3"));
+		pillowFort = Gdx.audio.newMusic(Gdx.files.internal("Pillow-Fort.mp3"));
+		sleepless = Gdx.audio.newMusic(Gdx.files.internal("Sleepless.mp3"));
+
+		int random = ThreadLocalRandom.current().nextInt(0, 3);
+
+		switch (random) {
+			case 0:
+				newWindow.play();
+				break;
+			case 1:
+				pillowFort.play();
+				break;
+			case 2:
+				sleepless.play();
+				break;
+		}
+
+		System.out.println(random);
 
 		blackOrder = makeOrder();
 		orangeOrder = makeOrder();
@@ -102,6 +126,24 @@ public class catGame extends ApplicationAdapter {
 		camera.position.set(cameraPos);
 		camera.update();
 
+		if (!newWindow.isPlaying() && !pillowFort.isPlaying() && !sleepless.isPlaying()) {
+			int random = ThreadLocalRandom.current().nextInt(0, 3);
+
+			switch (random) {
+				case 0:
+					newWindow.play();
+					break;
+				case 1:
+					pillowFort.play();
+					break;
+				case 2:
+					sleepless.play();
+					break;
+			}
+
+			System.out.println(random);
+		}
+
 		if (Gdx.input.isKeyPressed(Input.Keys.D)) {
 			catRect.setPosition(catRect.x + 200 * Gdx.graphics.getDeltaTime(), catRect.y);
 		}
@@ -136,12 +178,7 @@ public class catGame extends ApplicationAdapter {
 				System.out.println("picked up black coffee");
 				blackCoffeeRect.setPosition(999999999, 999999999);
 				canPickup = true;
-			} else {
-				System.out.println("picked up air, currently have " + itemHeld);
-				canPickup = true;
-			}
-
-			if (catRect.overlaps(blackCatRect) && itemHeld == blackOrder) {
+			} else if (catRect.overlaps(blackCatRect) && itemHeld == blackOrder) {
 				itemHeld = "nothing";
 				blackCat = new Texture("happyBlackCat.png");
 				System.out.println("the black cat is happy!");
@@ -149,15 +186,24 @@ public class catGame extends ApplicationAdapter {
 			} else if (catRect.overlaps(orangeCatRect) && itemHeld == orangeOrder) {
 				itemHeld = "nothing";
 				orangeCat = new Texture("happyOrangeCat.png");
-				System.out.println("the black cat is happy!");
+				System.out.println("the orange cat is happy!");
+				canPickup = true;
+			} else {
+				System.out.println("picked up air, currently have " + itemHeld);
 				canPickup = true;
 			}
+
+			pickupSfx.play(1);
 		}
 	}
 	
 	@Override
 	public void dispose () {
 		batch.dispose();
+		pickupSfx.dispose();
+		newWindow.dispose();
+		pillowFort.dispose();
+		sleepless.dispose();
 		cat.dispose();
 		blackCat.dispose();
 		orangeCat.dispose();
@@ -167,7 +213,7 @@ public class catGame extends ApplicationAdapter {
 	}
 
 	public String makeOrder() {
-		int randomizer = ThreadLocalRandom.current().nextInt(0, 2);
+		int randomizer = ThreadLocalRandom.current().nextInt(0, 3);
 		String order = null;
 
 		switch (randomizer) {
