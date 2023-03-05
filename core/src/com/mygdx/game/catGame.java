@@ -13,6 +13,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class catGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	OrthographicCamera camera;
-	Sound pickupSfx;
+	Sound pickupSfx, happyCat;
 	Music newWindow, pillowFort, sleepless;
 
 	String itemHeld = "nothing";
@@ -37,6 +38,7 @@ public class catGame extends ApplicationAdapter {
 
 	Texture cat;
 	Rectangle catRect;
+	int energy;
 
 	Texture blackCat;
 	Rectangle blackCatRect;
@@ -62,9 +64,12 @@ public class catGame extends ApplicationAdapter {
 		camera.setToOrtho(false, 1280, 720);
 		cameraPos = new Vector3();
 		pickupSfx = Gdx.audio.newSound(Gdx.files.internal("pickup.wav"));
+		happyCat = Gdx.audio.newSound(Gdx.files.internal("happyCat.wav"));
 		newWindow = Gdx.audio.newMusic(Gdx.files.internal("New-Window.mp3"));
 		pillowFort = Gdx.audio.newMusic(Gdx.files.internal("Pillow-Fort.mp3"));
 		sleepless = Gdx.audio.newMusic(Gdx.files.internal("Sleepless.mp3"));
+
+		energy *= 60;
 
 		int random = ThreadLocalRandom.current().nextInt(0, 3);
 
@@ -85,7 +90,7 @@ public class catGame extends ApplicationAdapter {
 		blackOrder = makeOrder();
 		orangeOrder = makeOrder();
 
-		if (blackOrder == orangeOrder) {
+		if (Objects.equals(blackOrder, orangeOrder)) {
 			blackOrder = makeOrder();
 			orangeOrder = makeOrder();
 		}
@@ -111,6 +116,11 @@ public class catGame extends ApplicationAdapter {
 	public void render () {
 		ScreenUtils.clear(0.15f, 0.15f, 0.15f, 1);
 
+		camera.position.x = catRect.x;
+		camera.position.y = catRect.y;
+		camera.translate(catRect.x, catRect.y);
+		camera.update();
+
 		batch.begin();
 		batch.draw(cat, catRect.x, catRect.y, 64 , 64);
 		batch.draw(blackCat, blackCatRect.x, blackCatRect.y, 64, 64);
@@ -120,11 +130,6 @@ public class catGame extends ApplicationAdapter {
 		batch.draw(espresso, espressoRect.x, espressoRect.y, 48, 48);
 		batch.draw(blackCoffee, blackCoffeeRect.x, blackCoffeeRect.y, 48, 48);
 		batch.end();
-
-		cameraPos.set(catRect.x, catRect.y, -10);
-
-		camera.position.set(cameraPos);
-		camera.update();
 
 		if (!newWindow.isPlaying() && !pillowFort.isPlaying() && !sleepless.isPlaying()) {
 			int random = ThreadLocalRandom.current().nextInt(0, 3);
@@ -167,33 +172,37 @@ public class catGame extends ApplicationAdapter {
 				itemHeld = "coffee";
 				System.out.println("picked up coffee");
 				coffeeRect.setPosition(999999999, 999999999);
+				pickupSfx.play(1);
 				canPickup = true;
 			} else if (catRect.overlaps(espressoRect)) {
 				itemHeld = "espresso";
 				System.out.println("picked up espresso");
 				espressoRect.setPosition(999999999, 999999999);
+				pickupSfx.play(1);
 				canPickup = true;
 			} else if (catRect.overlaps(blackCoffeeRect)) {
 				itemHeld = "blackCoffee";
 				System.out.println("picked up black coffee");
 				blackCoffeeRect.setPosition(999999999, 999999999);
+				pickupSfx.play(1);
 				canPickup = true;
 			} else if (catRect.overlaps(blackCatRect) && itemHeld == blackOrder) {
 				itemHeld = "nothing";
 				blackCat = new Texture("happyBlackCat.png");
 				System.out.println("the black cat is happy!");
+				happyCat.play(1);
 				canPickup = true;
 			} else if (catRect.overlaps(orangeCatRect) && itemHeld == orangeOrder) {
 				itemHeld = "nothing";
 				orangeCat = new Texture("happyOrangeCat.png");
 				System.out.println("the orange cat is happy!");
+				happyCat.play(1);
 				canPickup = true;
 			} else {
 				System.out.println("picked up air, currently have " + itemHeld);
 				canPickup = true;
+				pickupSfx.play(1);
 			}
-
-			pickupSfx.play(1);
 		}
 	}
 	
