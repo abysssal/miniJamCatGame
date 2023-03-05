@@ -12,6 +12,8 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
@@ -29,12 +31,12 @@ import java.util.concurrent.TimeUnit;
 public class catGame extends ApplicationAdapter {
 	SpriteBatch batch;
 	OrthographicCamera camera;
+	Viewport viewport;
 	Sound pickupSfx, happyCat;
 	Music newWindow, pillowFort, sleepless;
 
 	String itemHeld = "nothing";
 	Boolean canPickup = true;
-	Vector3 cameraPos;
 
 	Texture cat;
 	Rectangle catRect;
@@ -60,9 +62,8 @@ public class catGame extends ApplicationAdapter {
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		camera = new OrthographicCamera(1280, 720);
-		camera.setToOrtho(false, 1280, 720);
-		cameraPos = new Vector3();
+		viewport = new ExtendViewport(1280, 720);
+		camera = (OrthographicCamera) viewport.getCamera();
 		pickupSfx = Gdx.audio.newSound(Gdx.files.internal("pickup.wav"));
 		happyCat = Gdx.audio.newSound(Gdx.files.internal("happyCat.wav"));
 		newWindow = Gdx.audio.newMusic(Gdx.files.internal("New-Window.mp3"));
@@ -104,7 +105,7 @@ public class catGame extends ApplicationAdapter {
 		espresso = new Texture("espresso.png");
 		blackCoffee = new Texture("blackCoffee.png");
 
-		catRect = new Rectangle(Gdx.graphics.getWidth() / 2 - 32, Gdx.graphics.getHeight() / 2 - 32, 64, 64);
+		catRect = new Rectangle(viewport.getWorldWidth() / 2 - 32, viewport.getWorldHeight() / 2 - 32, 64, 64);
 		blackCatRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 64), ThreadLocalRandom.current().nextInt(0, 720 - 64), 64, 64);
 		orangeCatRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 64), ThreadLocalRandom.current().nextInt(0, 720 - 64), 64, 64);
 		coffeeRect = new Rectangle(ThreadLocalRandom.current().nextInt(0, 1280 - 48), ThreadLocalRandom.current().nextInt(0, 720 - 48), 48, 48);
@@ -118,9 +119,10 @@ public class catGame extends ApplicationAdapter {
 
 		camera.position.x = catRect.x;
 		camera.position.y = catRect.y;
-		camera.translate(catRect.x, catRect.y);
-		camera.update();
 
+		viewport.apply();
+
+		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		batch.draw(cat, catRect.x, catRect.y, 64 , 64);
 		batch.draw(blackCat, blackCatRect.x, blackCatRect.y, 64, 64);
@@ -238,5 +240,10 @@ public class catGame extends ApplicationAdapter {
 		}
 
 		return order;
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		viewport.update(width, height);
 	}
 }
